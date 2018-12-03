@@ -27,10 +27,13 @@ public class Main_Hack implements Comparable<Main_Hack>
 	{
 		// roleStepSQLGen();
 
-		new Main_Hack().getRepeatTempleate("C:\\Users\\va87348\\Desktop\\tmplate.sql", "C:\\Users\\va87348\\Desktop\\control.ctl", "C:\\Users\\va87348\\Desktop\\output.sql");
+		new Main_Hack().getRepeatTempleate("C:\\Users\\va87348\\Desktop\\tmplate.sql", "C:\\Users\\va87348\\Desktop\\control.ctl", "C:\\Users\\va87348\\Desktop\\output.sql", true);
+		// int a = test(2);
+		// System.out.println(a);
+
 	}
 
-	public boolean getRepeatTempleate(String templatepath, String controlPath, String outputPath)
+	public boolean getRepeatTempleate(String templatepath, String controlPath, String outputPath, boolean isCompination)
 	{
 		Scanner scan = null;
 		try
@@ -55,7 +58,11 @@ public class Main_Hack implements Comparable<Main_Hack>
 					dataSize = control.getDataSize();
 				controlList.add(control);
 			}
-			return processData(template, controlList, outputPath, dataSize);
+			if (isCompination)
+				return processDataCompination(template, controlList, outputPath);
+			else
+
+				return processData(template, controlList, outputPath, dataSize);
 
 		} catch (FileNotFoundException e)
 		{
@@ -64,6 +71,73 @@ public class Main_Hack implements Comparable<Main_Hack>
 		} finally
 		{
 			scan.close();
+		}
+
+		return true;
+	}
+
+	private boolean processCompinationData(StringBuilder template, OutputStreamWriter writer, int parent, String currentValue, List<ControlFile> controlList) throws IOException
+	{
+		if (parent == controlList.size())
+		{
+			String writeData = template.toString();
+			System.out.println(currentValue);
+			String[] splitedData = currentValue.split("###~#");
+
+			for (int i = 0; i < splitedData.length; i++)
+			{
+				writeData = writeData.replace(controlList.get(i).placeHolder, splitedData[i]);
+			}
+			System.out.println(writeData);
+			writer.append(writeData.toString());
+
+			return true;
+		} else
+		{
+
+			for (int i = 0; i < controlList.get(parent).dataHolder.size(); i++)
+			{
+				System.out.println("currentValue " + currentValue + "   :: " + i);
+				if (currentValue.equals(""))
+
+					processCompinationData(template, writer, parent + 1, controlList.get(parent).dataHolder.get(i), controlList);
+				else
+
+					processCompinationData(template, writer, parent + 1, currentValue + "###~#" + controlList.get(parent).dataHolder.get(i), controlList);
+			}
+		}
+
+		return false;
+	}
+
+	private boolean processDataCompination(StringBuilder template, Set<ControlFile> controlList, String outputPath)
+	{
+		OutputStreamWriter writer = null;
+		try
+		{
+			writer = new OutputStreamWriter(new FileOutputStream(outputPath));
+
+			List<ControlFile> listData = new ArrayList<ControlFile>(controlList);
+
+			processCompinationData(template, writer, 0, "", listData);
+		} catch (FileNotFoundException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally
+		{
+			try
+			{
+				writer.close();
+			} catch (IOException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 		return true;
@@ -78,18 +152,21 @@ public class Main_Hack implements Comparable<Main_Hack>
 			for (int i = 0; i < dataSize; i++)
 			{
 				String dataRow = template.toString();
+				System.out.println("data Size  :: " + dataSize);
+				System.out.println("I :: " + i);
+
 				for (ControlFile contorl : controlList)
 				{
 					dataRow = dataRow.replace(contorl.placeHolder, contorl.dataHolder.get(i));
 				}
-				writer.append(dataRow );
+				writer.append(dataRow);
 			}
 
 		} catch (FileNotFoundException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (IOException e)	
+		} catch (IOException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -174,6 +251,34 @@ public class Main_Hack implements Comparable<Main_Hack>
 			return (ctl.placeHolder.equals(this.placeHolder) && ctl.fileLocation.equals(this.fileLocation) && this.position == ctl.position);
 		}
 
+	}
+
+	static void minimumBribes(int[] q)
+	{
+		int count = 0;
+
+		int ans = 0;
+		for (int i = q.length - 1; i >= 0; i--)
+		{
+			if (q[i] - (i + 1) > 2)
+			{
+				System.out.println("Too chaotic");
+				return;
+			}
+			for (int j = Math.max(0, q[i] - 2); j < i; j++)
+				if (q[j] > q[i])
+					count++;
+		}
+		System.out.println(count);
+	}
+
+	static public int test(int n)
+	{
+		if (n == 0)
+			return 0;
+		if (n == 1)
+			return 1;
+		return test(n - 1) + test(n - 2);
 	}
 
 	private static void roleStepSQLGen()
@@ -924,6 +1029,20 @@ public class Main_Hack implements Comparable<Main_Hack>
 	public String toString()
 	{
 		return super.toString();
+	}
+
+	static void generatePermutations(List<List<String>> Lists, List<String> result, int depth, String current)
+	{
+		if (depth == Lists.size())
+		{
+			result.add(current);
+			return;
+		}
+
+		for (int i = 0; i < Lists.get(depth).size(); ++i)
+		{
+			generatePermutations(Lists, result, depth + 1, current + Lists.get(depth).get(i));
+		}
 	}
 
 	public static void mainOld(String... strings) throws FileNotFoundException, IOException, CloneNotSupportedException
